@@ -1,0 +1,30 @@
+name: Build Qualcomm APK
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master (for build scripts)
+        uses: actions/checkout@v4
+        with:
+          ref: master
+      
+      - name: Overlay QCOM Code
+        run: |
+          git fetch origin qcom
+          git checkout origin/qcom -- jni/ src/ res/ AndroidManifest.xml
+          
+      - name: set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RevampedFM-QCOM
+          path: app/build/outputs/apk/debug/*.apk
